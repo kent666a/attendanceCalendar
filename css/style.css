@@ -1,0 +1,75 @@
+.div_calendar {
+    width: 450px;
+    margin: 0 auto;
+    text-align: center;
+    display: -webkit-box;
+}
+
+/** 日历标题 */
+.div_calendar_title {
+    width: 450px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+/** 日历主体 */
+.div_calendar_body {
+    width: 350px;
+    text-align: center;
+}
+
+/** 日元素 */
+.div_calendar span {
+    width: 50px;
+    display: inline-block;
+    text-align: center;
+    line-height: 50px;
+}
+
+/** 正常 */
+.div_calendar span.normal {
+    color: blue;
+}
+
+/** 迟到 */
+.div_calendar span.late {
+    color: red;
+}
+
+/** 缺勤 */
+.div_calendar span.absense {
+    color: #666;
+}
+
+/** 缺勤 */
+.div_calendar span.today {
+    border-radius: 50%;
+    background: cornflowerblue;
+}
+
+/** 日历第一行日期 */
+.div_calendar .first_div {
+    text-align: right;
+}
+
+/** 日历末行日期 */
+.div_calendar .last_div {
+    text-align: left;
+}
+
+/** 日期显示div */
+.div_calendar .div_currentDate {
+    text-align: right;
+}
+
+.div_calendar .changeDate {
+    cursor: pointer;
+}
+
+.div_calendar .div_currentDate span {
+    width: inherit;
+}
+
+.div_calendar .div_currentDate span em {
+    margin: 5px;
+}
