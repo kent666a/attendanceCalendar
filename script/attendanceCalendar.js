@@ -143,11 +143,24 @@ function AttendanceCalendar(_obj, _fn) {
         addClass($content, "div_calendar_body");
         $elem.appendChild($content);
         addCalendarHead();
-        createLine(7 - firstWeekDay, 1);
-        createLine(6);
-        createLine(6);
-        createLine(6);
-        createLine(mds - 21 - (7 - firstWeekDay + 1) - 1, 2);
+
+        //日期计算bug，例：2017-01
+        var num = 0;
+        do {
+            var length = 0;
+            if (num == 0) {
+                //出星期天外，星期数(1~6)和第一行显示的日期数(7~2)，相加的结果都为8
+                length = firstWeekDay == 0 ? 1 : 8 - firstWeekDay;
+                num = length;
+                createLine(length - 1, 1);
+            }
+            else {
+                var length = mds - num > 6 ? 7 : mds - num;
+                num = num + length;
+                createLine(length - 1);
+            }
+        }
+        while (num < mds)
         showCurrentDate();
     }
 
@@ -210,7 +223,7 @@ function AttendanceCalendar(_obj, _fn) {
         if (type == 1) {
             addClass(newDiv, "first_div")
         }
-        if (type == 2) {
+        else {
             addClass(newDiv, "last_div")
         }
         $content.appendChild(newDiv);
