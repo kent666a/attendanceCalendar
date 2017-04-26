@@ -9,15 +9,17 @@
  * @param _fn 考勤数据的获取方法，返回的数据必须为数组，长度与当前月份天数一致，
  * 具体属性绑定请见{@link bindAttendance}
  *
+ * 显示日期的label的id
  *
  */
-function AttendanceCalendar(_obj, _fn) {
+function AttendanceCalendar(_obj, _fn, lable) {
     var $elem;
     var $content;
     var getDataFn;
     var $left, $right;
+    var $actualDate;            //实际日期
     var myDate;                 //当前日期
-    var date;                   //当前日(1-31)
+    var date;                  //当前日(1-31)
     var day;                    //当前星期X(0-6,0代表星期天)
     var firstWeekDay;          //1号星期X
     var mds;                   //当月天数
@@ -25,6 +27,9 @@ function AttendanceCalendar(_obj, _fn) {
     var attendances = [];
     var hasMoveButton = false;  //是否开启日历上下月翻动按钮
     var refreshBody = false;
+    var showCurrentDateFlag = true;
+    var target_lable = lable;   //当前日期需要绑定的位置
+    var currentYM = null;     //当前年月
 
     /**
      * 配置
@@ -89,6 +94,7 @@ function AttendanceCalendar(_obj, _fn) {
         day = myDate.getDay();
         firstWeekDay = getfirstWeekDay();
         mds = DayNumOfMonth(myDate.getYear(), myDate.getMonth() + 1);
+        currentYM = myDate.getFullYear() + "-" + formatMonth(myDate.getMonth());
         hasMoveButton = true;
     }
 
@@ -112,8 +118,82 @@ function AttendanceCalendar(_obj, _fn) {
         else {
             if (!myDate) {
                 myDate = new Date();
+                $actualDate = myDate;
             }
         }
+    }
+
+    /**
+     * 月份补0
+     * @param target
+     * @returns {*}
+     */
+    function formatMonth(target) {
+        if (target < 9) {
+            target = "0" + (target + 1);
+        }
+        else {
+            target = target + 1;
+        }
+        return target;
+    }
+
+    /**
+     * 日补0
+     */
+    function formatDate(target) {
+        if (typeof target != "number") {
+            target = parseInt(target);
+        }
+        if (target < 10) {
+            target = "0" + (target);
+        }
+        return target;
+    }
+
+    /**
+     * 获取星期
+     */
+    function formatDay(_day) {
+        switch (_day) {
+            case 0:
+                _day = "星期日";
+                break;
+            case 1:
+                _day = "星期一";
+                break;
+            case 2:
+                _day = "星期二";
+                break;
+            case 3:
+                _day = "星期三";
+                break;
+            case 4:
+                _day = "星期四";
+                break;
+            case 5:
+                _day = "星期五";
+                break;
+            case 6:
+                _day = "星期六";
+                break;
+        }
+        return _day;
+    }
+
+    /**
+     * 转换显示的完整日期
+     * @param target
+     * @returns {string}
+     */
+    function getCompleteDate(target) {
+        if (!target) {
+            target = new Date();
+        }
+        var month = formatMonth(target.getMonth());
+        var _date = formatDate(target.getDate());
+        var _day = formatDay(target.getDay());
+        return target.getFullYear() + "-" + month + "-" + _date + " " + _day;
     }
 
     /**
@@ -236,10 +316,21 @@ function AttendanceCalendar(_obj, _fn) {
      */
     function bindAttendance(span, attendance) {
         if (attendance) {
+            span.onclick = function () {
+                var spans = document.getElementsByClassName("select");
+                if (spans && spans.length > 0) {
+                    spans[0].className = spans[0].className.replace("select", "").trim();
+                }
+                addClass(this, "select");
+                var _date = formatDate(parseInt(this.id) + 1);
+                myDate = convertDateFromString(currentYM + "-" + _date);
+                showCurrentDate();
+            }
             span.setAttribute("id", attendance.day);
             var actual_ym = getYearAndMonth(new Date());
+            var actual_date = $actualDate.getDate();
             var ym = getYearAndMonth(myDate);
-            if (actual_ym == ym && attendance.day == date - 1) {
+            if (actual_ym == ym && attendance.day == actual_date - 1) {
                 addClass(span, "today");
             }
             else {
@@ -262,23 +353,34 @@ function AttendanceCalendar(_obj, _fn) {
      * 显示当前年月
      */
     function showCurrentDate() {
-        var currentDiv = document.createElement("div");
-        addClass(currentDiv, "div_currentDate");
-        var span = document.createElement("span");
-
-        var em_title = document.createElement("em");
-        var em_text = document.createTextNode("当前年月:");
-        em_title.appendChild(em_text);
-
-        var em_date = document.createElement("em");
-        var currentdate_text = getYearAndMonth(myDate);
-        var em_date_text = document.createTextNode(currentdate_text);
-        em_date.appendChild(em_date_text);
-
-        span.appendChild(em_title);
-        span.appendChild(em_date);
-        currentDiv.appendChild(span);
-        $content.appendChild(currentDiv);
+        if (!showCurrentDateFlag) return;
+        if (target_lable) {
+            document.getElementById(target_lable).innerText = getCompleteDate(myDate);
+        }
+        else {
+            if (document.getElementById("currentDate_text")) {
+                var text = document.getElementById("currentDate_text")
+                text.innerHTML = getCompleteDate(myDate);
+            }
+            else {
+                var currentDiv = document.createElement("div");
+                addClass(currentDiv, "div_currentDate");
+                span = document.createElement("span");
+                span.setAttribute("id", "currentDate_label");
+                var em_title = document.createElement("em");
+                var em_text = document.createTextNode("当前年月:");
+                em_title.appendChild(em_text);
+                var em_date = document.createElement("em");
+                var currentdate_text = getCompleteDate(myDate);
+                var em_date_text = document.createTextNode(currentdate_text);
+                em_date.setAttribute("id", "currentDate_text");
+                em_date.appendChild(em_date_text);
+                span.appendChild(em_title);
+                span.appendChild(em_date);
+                currentDiv.appendChild(span);
+                $content.appendChild(currentDiv);
+            }
+        }
     }
 
 
@@ -365,7 +467,7 @@ function AttendanceCalendar(_obj, _fn) {
 
 
 /**** 此为测试js部分 测试日历start  *****/
-new AttendanceCalendar("calendar_div", getData);
+new AttendanceCalendar("calendar_div", getData,"current_date_label");
 
 /**
  * @param ym ni月

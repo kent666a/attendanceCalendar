@@ -41,10 +41,16 @@
     color: #666;
 }
 
-/** 缺勤 */
+/** 当前日期 */
 .div_calendar span.today {
     border-radius: 50%;
     background: cornflowerblue;
+}
+
+/** 选中 */
+.div_calendar span.select {
+    border-radius: 50%;
+    background: seagreen;
 }
 
 /** 日历第一行日期 */
@@ -72,4 +78,10 @@
 
 .div_calendar .div_currentDate span em {
     margin: 5px;
+}
+
+.div_target_label{
+    width: 400px;
+    margin: 20px auto;
+    text-align: right;
 }
