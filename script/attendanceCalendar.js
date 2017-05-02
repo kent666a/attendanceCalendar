@@ -16,21 +16,31 @@
 function AttendanceCalendar(_obj, _fn, _lable) {
     var $elem;                          //日历父div
     var $content;                       //日历内容div
+    /**
+     * //获取数据方式
+     *
+     * 0,函数获取方式
+     * 1.直接传入数组
+     * @type {number}
+     */
+    var getDataType = 0;
     var getDataFn;                      //获取数据函数
     var $left, $right;                  //左右翻动div
     var $actualDate;                    //实际日期
+    var $selectedSpan;                 //选中span
     var myDate;                         //当前日期
     var date;                           //当前日(1-31)
     var day;                            //当前星期X(0-6,0代表星期天)
     var firstWeekDay;                   //1号星期X
     var mds;                            //当月天数
     var index = 0;                      //索引(若是需要对日历的属性进行赋值，该索引可直接作为数组索引)
-    var hasMoveButton = false;          //是否开启日历上下月翻动按钮
+    var hasMoveButton = true;          //是否开启日历上下月翻动按钮
     var refreshBody = false;            //是否刷新日历主体
     var target_lable = _lable;           //当前日期需要绑定的位置
     var currentYM = null;               //当前年月
     var showCurrentDateFlag = true;     //是否显示当前日期
     var self = this;                    //当前日历对象
+    var clickFn;                        //点击日期时调用的外部函数
     /**
      * map形式的数组
      * 时间可接收时间戳
@@ -63,13 +73,52 @@ function AttendanceCalendar(_obj, _fn, _lable) {
     this.setDateField = function (_value) {
         date_field = _value;
     };
+    /**
+     * 是否显示左右翻动按钮
+     * @param _value
+     */
+    this.setHasMoveButton = function (_value) {
+        hasMoveButton = _value;
+    };
+    /**
+     * 设置数据获取方式
+     * @param _value
+     */
+    this.setGetDataType = function (_value) {
+        getDataType = _value;
+    }
+    /**
+     * 设置数组
+     * @param _value
+     */
+    this.setAttendance = function (_value) {
+        attendances = _value;
+    }
 
+    /**
+     * 设置点击日期时调用的外部函数
+     * @param _value
+     */
+    this.setClickFn = function (_value) {
+        clickFn = _value;
+    }
+    /**
+     * 获取当前选中日期
+     * @returns {*}
+     */
+    this.getCurrentDate = function () {
+        return myDate;
+    }
     /**
      * 初始化
      * 调用此方法开始生成日历
      */
     this.init = function () {
         $elem = document.getElementById(_obj);
+        if (!$elem) {
+            alert("需要绑定的考勤日历div不存在");
+            return;
+        }
         getDataFn = _fn;
         initCalendar();
     };
@@ -92,28 +141,39 @@ function AttendanceCalendar(_obj, _fn, _lable) {
      * 此获取的数组长度必须与当月的天数一致
      */
     function initArray() {
-        attendances = [];
-        if (getDataFn && typeof getDataFn == "function") {
-            attendances = getDataFn(getYearAndMonth(myDate));
-            if (attendances && attendances.length && arryType == 1) {
-                var length = attendances.length;
-                for (var i = 0; i < length; i++) {
-                    var key = attendances[i][date_field];
-                    if (typeof key == "object") {
-                        map[key.getDate()] = attendances[i];
-                    }
-                    if (typeof key == "number") {
-                        var temp_date = new Date();
-                        temp_date.setTime(key);
-                        map[temp_date.getDate()] = attendances[i];
-                    }
+        if (getDataType == 0) {
+            if (getDataFn && typeof getDataFn == "function") {
+                attendances = getDataFn(getYearAndMonth(myDate));
+                if (attendances && attendances.length && arryType == 1) {
+                    arrayToMap();
+                }
+            }
+            else {
+                for (var i = 0; i < 30; i++) {
+                    var num = GetRandomNum(0, 2);
+                    attendances.push({day: i, status: num});
                 }
             }
         }
-        else {
-            for (var i = 0; i < 30; i++) {
-                var num = GetRandomNum(0, 2);
-                attendances.push({day: i, status: num});
+        if (getDataType == 1) {
+            arrayToMap();
+        }
+    }
+
+    /**
+     * 数组填充map
+     */
+    function arrayToMap() {
+        var length = attendances.length;
+        for (var i = 0; i < length; i++) {
+            var key = attendances[i][date_field];
+            if (typeof key == "object") {
+                map[key.getDate()] = attendances[i];
+            }
+            if (typeof key == "number") {
+                var temp_date = new Date();
+                temp_date.setTime(key);
+                map[temp_date.getDate()] = attendances[i];
             }
         }
     }
@@ -142,7 +202,6 @@ function AttendanceCalendar(_obj, _fn, _lable) {
         firstWeekDay = getfirstWeekDay();
         mds = DayNumOfMonth(myDate.getYear(), myDate.getMonth() + 1);
         currentYM = myDate.getFullYear() + "-" + formatMonth(myDate.getMonth());
-        hasMoveButton = true;
     }
 
     /**
@@ -202,6 +261,9 @@ function AttendanceCalendar(_obj, _fn, _lable) {
      * 获取星期
      */
     function formatDay(_day) {
+        if (typeof _day != "number") {
+            _day = parseInt(_day);
+        }
         switch (_day) {
             case 0:
                 _day = "星期日";
@@ -230,17 +292,29 @@ function AttendanceCalendar(_obj, _fn, _lable) {
 
     /**
      * 转换显示的完整日期
+     *
+     * 兼容ios显示
      * @param target
      * @returns {string}
      */
     function getCompleteDate(target) {
-        if (!target) {
-            target = new Date();
+        if ($selectedSpan) {
+            var year = currentYM.substr(0, 4);
+            var month = currentYM.substr(5, 2);
+            var _day = formatDate($selectedSpan.getAttribute("dayOfMonth"));
+            var _weekday = formatDay($selectedSpan.getAttribute("weekday"));
+            return year + "-" + month + "-" + _day + " " + _weekday;
         }
-        var month = formatMonth(target.getMonth());
-        var _date = formatDate(target.getDate());
-        var _day = formatDay(target.getDay());
-        return target.getFullYear() + "-" + month + "-" + _date + " " + _day;
+        else {
+            if (!target) {
+                target = new Date();
+            }
+            var month = formatMonth(target.getMonth());
+            var _date = formatDate(target.getDate());
+            var _day = formatDay(target.getDay());
+            return target.getFullYear() + "-" + month + "-" + _date + " " + _day;
+        }
+
     }
 
     /**
@@ -339,7 +413,20 @@ function AttendanceCalendar(_obj, _fn, _lable) {
         var newDiv = document.createElement("div");
         for (var i = 0; i <= num; i++, index++) {
             var span = document.createElement("span");
+            var weekDay = 0;
+            if (type == 1) {
+                //设置星期数
+                var weekDay = firstWeekDay + i;
+            }
+            else {
+                weekDay = i + 1;
+            }
+            if (weekDay > 6) {
+                weekDay -= 7;
+            }
+            span.setAttribute("weekday", weekDay);
             var span_text = document.createTextNode(index + 1);
+            span.setAttribute("dayOfMonth", index + 1);
             setTodayClass(span);
             setOnClick(span);
             bindType(span);
@@ -364,6 +451,7 @@ function AttendanceCalendar(_obj, _fn, _lable) {
         var ym = getYearAndMonth(myDate);
         if (actual_ym == ym && index == actual_date - 1) {
             addClass(span, "today");
+            addClass(span, "select");
         }
     }
 
@@ -376,10 +464,12 @@ function AttendanceCalendar(_obj, _fn, _lable) {
             if (spans && spans.length > 0) {
                 spans[0].className = spans[0].className.replace("select", "").trim();
             }
+            $selectedSpan = this;
             addClass(this, "select");
             var _date = formatDate(parseInt(this.innerText));
             myDate = convertDateFromString(currentYM + "-" + _date);
             showCurrentDate();
+            if (typeof clickFn == "function") clickFn();
         }
     }
 
@@ -406,16 +496,13 @@ function AttendanceCalendar(_obj, _fn, _lable) {
      */
     function bindAttendance(span, attendance) {
         if (attendance) {
-            span.setAttribute("id", attendance.day);
+            span.setAttribute("id", attendance[date_field]);
             switch (attendance.status) {
                 case 0:
-                    addClass(span, "normal");
+                    addClass(span, "absense");
                     break;
                 case 1:
-                    addClass(span, "late");
-                    break;
-                case 2:
-                    addClass(span, "absense");
+                    addClass(span, "normal");
                     break;
             }
         }
@@ -472,6 +559,7 @@ function AttendanceCalendar(_obj, _fn, _lable) {
      * 添加左边翻动按钮，向前一个月
      */
     function addLeftBtn() {
+        if (!hasMoveButton) return;
         $left = document.createElement("div");
         var span = document.createElement("span");
         var span_text = document.createTextNode("<");
@@ -490,6 +578,7 @@ function AttendanceCalendar(_obj, _fn, _lable) {
      * 添加右边翻动按钮，向后一个月
      */
     function addRightBtn() {
+        if (!hasMoveButton) return;
         $right = document.createElement("div");
         var span = document.createElement("span");
         var span_text = document.createTextNode(">");
@@ -542,7 +631,14 @@ function AttendanceCalendar(_obj, _fn, _lable) {
 var ac = new AttendanceCalendar("calendar_div", getData2, "current_date_label");
 ac.setDateField("datetime");
 ac.setArryType(1);
+ac.setHasMoveButton(false);
+// ac.setClickFn(clickFn);
 ac.init();
+
+var a = "sdfsdfdsf";
+function clickFn() {
+    alert(a);
+}
 
 /**
  * @param ym ni月

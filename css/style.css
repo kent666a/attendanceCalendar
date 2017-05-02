@@ -1,56 +1,60 @@
 .div_calendar {
-    width: 450px;
+    width: 640px;
     margin: 0 auto;
     text-align: center;
     display: -webkit-box;
+    font-family: Arial;
+    font-size: 30px;
+    background: #fff;
 }
 
 /** 日历标题 */
 .div_calendar_title {
-    width: 450px;
+    width: 95%;
     margin: 0 auto;
     text-align: center;
 }
 
 /** 日历主体 */
 .div_calendar_body {
-    width: 350px;
+    width: 602px;
+    margin: 0 auto;
     text-align: center;
 }
 
 /** 日元素 */
 .div_calendar span {
-    width: 50px;
+    width: 86px;
     display: inline-block;
     text-align: center;
-    line-height: 50px;
+    line-height: 86px;
+}
+
+/** 没有记录 */
+.div_calendar span.no {
+    color: #cbcbcb;
 }
 
 /** 正常 */
-.div_calendar span.normal {
-    color: blue;
-}
-
-/** 迟到 */
-.div_calendar span.late {
-    color: red;
+.div_calendar span. {
+    color: #8ecda9;
 }
 
 /** 缺勤 */
 .div_calendar span.absense {
-    color: #666;
+    color: #bfbfbf;
 }
 
 /** 当前日期 */
 .div_calendar span.today {
     border-radius: 50%;
-    background: cornflowerblue;
+    background: #8ecda9;
 }
 
 /** 选中 */
 .div_calendar span.select {
     border-radius: 50%;
-    background: seagreen;
+    background: #39ac6a;
 }
 
 /** 日历第一行日期 */
