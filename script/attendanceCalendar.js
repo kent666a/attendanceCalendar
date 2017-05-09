@@ -93,6 +93,9 @@ function AttendanceCalendar(_obj, _fn, _lable) {
      */
     this.setAttendance = function (_value) {
         attendances = _value;
+        if (getDataType == 1) {
+            initCalendar();
+        }
     }
 
     /**
@@ -122,6 +125,20 @@ function AttendanceCalendar(_obj, _fn, _lable) {
         getDataFn = _fn;
         initCalendar();
     };
+
+    /**
+     * 下一月
+     */
+    this.nextMonth = function () {
+        nextMonth();
+    }
+
+    /**
+     * 上一月
+     */
+    this.upMonth = function () {
+        upMonth();
+    }
 
     /**
      * 创建日历
@@ -164,6 +181,7 @@ function AttendanceCalendar(_obj, _fn, _lable) {
      * 数组填充map
      */
     function arrayToMap() {
+        map = {};   //清空map
         var length = attendances.length;
         for (var i = 0; i < length; i++) {
             var key = attendances[i][date_field];
@@ -550,7 +568,11 @@ function AttendanceCalendar(_obj, _fn, _lable) {
      */
     function convertDateFromString(dateString) {
         if (dateString) {
-            var date = new Date(dateString.replace(/-/, "/"))
+            //在ios环境下new Date() 参数只接收yyyy/MM/dd，而在android或者web端没有严格要求
+            while (dateString.indexOf("-") > -1) {
+                dateString = dateString.replace(/-/, "/");
+            }
+            var date = new Date(dateString);
             return date;
         }
     }
@@ -597,7 +619,10 @@ function AttendanceCalendar(_obj, _fn, _lable) {
      */
     function nextMonth() {
         myDate.setMonth(myDate.getMonth() + 1);
-        initCalendar();
+        //直接传入数组的方式，由设置数组时初始化
+        if (getDataType != 1) {
+            initCalendar();
+        }
     }
 
     /**
@@ -605,7 +630,10 @@ function AttendanceCalendar(_obj, _fn, _lable) {
      */
     function upMonth() {
         myDate.setMonth(myDate.getMonth() - 1);
-        initCalendar();
+        //直接传入数组的方式，由设置数组时初始化
+        if (getDataType != 1) {
+            initCalendar();
+        }
     }
 
     /**
@@ -631,13 +659,21 @@ function AttendanceCalendar(_obj, _fn, _lable) {
 var ac = new AttendanceCalendar("calendar_div", getData2, "current_date_label");
 ac.setDateField("datetime");
 ac.setArryType(1);
-ac.setHasMoveButton(false);
+ac.setHasMoveButton(true);
 // ac.setClickFn(clickFn);
 ac.init();
 
 var a = "sdfsdfdsf";
 function clickFn() {
     alert(a);
+}
+
+function upMonth() {
+    ac.upMonth();
+}
+
+function nextMonth() {
+    ac.nextMonth();
 }
 
 /**
