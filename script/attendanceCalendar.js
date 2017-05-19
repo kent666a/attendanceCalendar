@@ -319,8 +319,8 @@ function AttendanceCalendar(_obj, _fn, _lable) {
         if ($selectedSpan) {
             var year = currentYM.substr(0, 4);
             var month = currentYM.substr(5, 2);
-            var _day = formatDate($selectedSpan.getAttribute("dayOfMonth"));
-            var _weekday = formatDay($selectedSpan.getAttribute("weekday"));
+            var _day = formatDate(target.getDate());
+            var _weekday = formatDay(target.getDay());
             return year + "-" + month + "-" + _day + " " + _weekday;
         }
         else {
@@ -461,16 +461,21 @@ function AttendanceCalendar(_obj, _fn, _lable) {
     }
 
     /**
-     * 设置今日元素样式
+     * 设置今日元素样式和默认选中
      */
     function setTodayClass(span) {
         var actual_ym = getYearAndMonth(new Date());
         var actual_date = $actualDate.getDate();
         var ym = getYearAndMonth(myDate);
-        if (actual_ym == ym && index == actual_date - 1) {
-            addClass(span, "today");
+        if (actual_ym == ym) {
+            if (index == actual_date - 1) {
+                addClass(span, "today");
+            }
+        }
+        if (index == myDate.getDate() - 1) {
             addClass(span, "select");
         }
+
     }
 
     /**
@@ -618,7 +623,8 @@ function AttendanceCalendar(_obj, _fn, _lable) {
      * 下个月
      */
     function nextMonth() {
-        myDate.setMonth(myDate.getMonth() + 1);
+
+        myDate.addMonths(1);
         //直接传入数组的方式，由设置数组时初始化
         if (getDataType != 1) {
             initCalendar();
@@ -629,7 +635,7 @@ function AttendanceCalendar(_obj, _fn, _lable) {
      * 上个月
      */
     function upMonth() {
-        myDate.setMonth(myDate.getMonth() - 1);
+        myDate.addMonths(-1);
         //直接传入数组的方式，由设置数组时初始化
         if (getDataType != 1) {
             initCalendar();
