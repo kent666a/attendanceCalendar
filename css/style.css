@@ -41,6 +41,11 @@
 }
 
 /** 缺勤 */
+.div_calendar span.normal {
+    color: #8ecda9;
+}
+
+/** 缺勤 */
 .div_calendar span.absense {
     color: #bfbfbf;
 }
