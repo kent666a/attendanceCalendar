@@ -89,8 +89,21 @@
     margin: 5px;
 }
 
-.div_target_label{
+.div_target_label {
     width: 400px;
     margin: 20px auto;
     text-align: right;
+}
+
+.div_changeMonth {
+    margin: auto auto;
+    text-align: center;
+}
+
+.div_changeMonth span {
+    cursor: pointer;
+}
+
+.div_changeMonth span:last-child {
+    margin-left: 20px;
 }

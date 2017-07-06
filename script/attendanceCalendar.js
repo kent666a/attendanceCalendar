@@ -12,6 +12,13 @@
  *
  * 显示日期的label的id
  *
+ * model示例
+ * var model = {
+ * dValue: 'datetime',   //数组中日期属性
+ * status: 'status',     //考勤状态属性
+ * absense:0,            //缺勤状态值
+ * normal:1              //正常出勤状态值
+ * };
  */
 function AttendanceCalendar(_obj, _fn, _lable) {
     var $elem;                          //日历父div
@@ -27,7 +34,7 @@ function AttendanceCalendar(_obj, _fn, _lable) {
     var getDataFn;                      //获取数据函数
     var $left, $right;                  //左右翻动div
     var $actualDate;                    //实际日期
-    var $selectedSpan;                 //选中span
+    var $selectedSpan;                  //选中span
     var myDate;                         //当前日期
     var date;                           //当前日(1-31)
     var day;                            //当前星期X(0-6,0代表星期天)
@@ -35,12 +42,13 @@ function AttendanceCalendar(_obj, _fn, _lable) {
     var mds;                            //当月天数
     var index = 0;                      //索引(若是需要对日历的属性进行赋值，该索引可直接作为数组索引)
     var hasMoveButton = true;          //是否开启日历上下月翻动按钮
-    var refreshBody = false;            //是否刷新日历主体
-    var target_lable = _lable;           //当前日期需要绑定的位置
+    var refreshBody = false;           //是否刷新日历主体
+    var target_lable = _lable;          //当前日期需要绑定的位置
     var currentYM = null;               //当前年月
     var showCurrentDateFlag = true;     //是否显示当前日期
     var self = this;                    //当前日历对象
     var clickFn;                        //点击日期时调用的外部函数
+    var _model = {};                    //配置显示的数据模型，自定义样式状态值
     /**
      * map形式的数组
      * 时间可接收时间戳
@@ -56,22 +64,11 @@ function AttendanceCalendar(_obj, _fn, _lable) {
     var arryType = 0;
     var attendances = [];               //绑定的数组
     /**
-     * 传入的数组中，对象中日期的字段名，此字段为必须设置字段
-     * @type {string}
-     */
-    var date_field = null;
-    /**
      * 设置arryType
      * @param _value
      */
     this.setArryType = function (_value) {
         arryType = _value;
-    };
-    /**
-     * 设置date_field
-     */
-    this.setDateField = function (_value) {
-        date_field = _value;
     };
     /**
      * 是否显示左右翻动按钮
@@ -140,6 +137,10 @@ function AttendanceCalendar(_obj, _fn, _lable) {
         upMonth();
     }
 
+    this.setModel = function (model) {
+        _model = model;
+    }
+
     /**
      * 创建日历
      */
@@ -148,9 +149,9 @@ function AttendanceCalendar(_obj, _fn, _lable) {
         initArray();
         initDate();
         $elem.innerHTML = null;
-        addLeftBtn();
+        // addLeftBtn();
         initCalendarBody();
-        addRightBtn();
+        // addRightBtn();
     };
 
     /**
@@ -161,14 +162,11 @@ function AttendanceCalendar(_obj, _fn, _lable) {
         if (getDataType == 0) {
             if (getDataFn && typeof getDataFn == "function") {
                 attendances = getDataFn(getYearAndMonth(myDate));
-                if (attendances && attendances.length && arryType == 1) {
+                if (attendances && attendances.length) {
                     arrayToMap();
                 }
-            }
-            else {
-                for (var i = 0; i < 30; i++) {
-                    var num = GetRandomNum(0, 2);
-                    attendances.push({day: i, status: num});
+                else {
+                    console.log("日历暂时没有绑定数据!");
                 }
             }
         }
@@ -183,8 +181,16 @@ function AttendanceCalendar(_obj, _fn, _lable) {
     function arrayToMap() {
         map = {};   //清空map
         var length = attendances.length;
+        if (length == mds) {
+            arryType = 0;
+        } else {
+            arryType = 1;
+        }
         for (var i = 0; i < length; i++) {
-            var key = attendances[i][date_field];
+            if (!_model || !_model.dValue) {
+                console.log("请先配置model!");
+            }
+            var key = attendances[i][_model.dValue];
             if (typeof key == "object") {
                 map[key.getDate()] = attendances[i];
             }
@@ -368,7 +374,7 @@ function AttendanceCalendar(_obj, _fn, _lable) {
         do {
             var length = 0;
             if (num == 0) {
-                //出星期天外，星期数(1~6)和第一行显示的日期数(7~2)，相加的结果都为8
+                //除星期天外，星期数(1~6)和第一行显示的日期数(7~2)，相加的结果都为8
                 length = firstWeekDay == 0 ? 1 : 8 - firstWeekDay;
                 num = length;
                 createLine(length - 1, 1);
@@ -519,12 +525,12 @@ function AttendanceCalendar(_obj, _fn, _lable) {
      */
     function bindAttendance(span, attendance) {
         if (attendance) {
-            span.setAttribute("id", attendance[date_field]);
-            switch (attendance.status) {
-                case 0:
+            span.setAttribute("id", attendance[_model.date]);
+            switch (attendance[_model.status]) {
+                case _model.absense:
                     addClass(span, "absense");
                     break;
-                case 1:
+                case _model.normal:
                     addClass(span, "normal");
                     break;
             }
@@ -623,7 +629,6 @@ function AttendanceCalendar(_obj, _fn, _lable) {
      * 下个月
      */
     function nextMonth() {
-
         myDate.addMonths(1);
         //直接传入数组的方式，由设置数组时初始化
         if (getDataType != 1) {
@@ -662,24 +667,27 @@ function AttendanceCalendar(_obj, _fn, _lable) {
 
 
 /**** 此为测试js部分 测试日历start  *****/
-var ac = new AttendanceCalendar("calendar_div", getData2, "current_date_label");
-ac.setDateField("datetime");
-ac.setArryType(1);
+var ac = new AttendanceCalendar("calendar_div", null, "current_date_label");
 ac.setHasMoveButton(true);
-// ac.setClickFn(clickFn);
+ac.setGetDataType(1);
+var model = {
+    dValue: 'datetime',
+    status: 'status',
+    absense: 0,
+    normal: 1
+};
+ac.setModel(model);
 ac.init();
-
-var a = "sdfsdfdsf";
-function clickFn() {
-    alert(a);
-}
+ac.setAttendance(getData2());
 
 function upMonth() {
     ac.upMonth();
+    ac.setAttendance(getData2());
 }
 
 function nextMonth() {
     ac.nextMonth();
+    ac.setAttendance(getData2());
 }
 
 /**
@@ -698,12 +706,12 @@ function getData(ym) {
 function getData2() {
     var attendances = [];
     var today = new Date();
-    attendances.push({datetime: today.clone().addDays(1).valueOf(), status: 0});
-    attendances.push({datetime: today.clone().addDays(2).valueOf(), status: 0});
-    attendances.push({datetime: today.clone().addDays(-5).valueOf(), status: 0});
-    attendances.push({datetime: today.clone().addDays(-7).valueOf(), status: 1});
-    attendances.push({datetime: today.clone().addDays(-11).valueOf(), status: 1});
-    attendances.push({datetime: today.clone().addDays(-12).valueOf(), status: 0});
+    attendances.push({datetime: today.clone().addDays(1).valueOf(), status: GetRandomNum(0, 2)});
+    attendances.push({datetime: today.clone().addDays(2).valueOf(), status: GetRandomNum(0, 2)});
+    attendances.push({datetime: today.clone().addDays(-5).valueOf(), status: GetRandomNum(0, 2)});
+    attendances.push({datetime: today.clone().addDays(-7).valueOf(), status: GetRandomNum(0, 2)});
+    attendances.push({datetime: today.clone().addDays(-11).valueOf(), status: GetRandomNum(0, 2)});
+    attendances.push({datetime: today.clone().addDays(-12).valueOf(), status: GetRandomNum(0, 2)});
     return attendances;
 }
 
@@ -711,6 +719,12 @@ function GetRandomNum(Min, Max) {
     var Range = Max - Min;
     var Rand = Math.random();
     return (Min + Math.round(Rand * Range));
+}
+
+// ac.setClickFn(clickFn);
+var a = "sdfsdfdsf";
+function clickFn() {
+    alert(a);
 }
 /**** 此为测试js部分 测试日历  *****/
 // console.log(DayNumOfMonth(2016, 2));
