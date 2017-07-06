@@ -7,8 +7,7 @@
  *
  * @param _obj 日历的div元素
  *
- * @param _fn 考勤数据的获取方法，返回的数据必须为数组，长度与当前月份天数一致，
- * 具体属性绑定请见{@link bindAttendance}
+ * @param _fn 考勤数据的获取方法，返回的数据必须为数组，具体属性绑定请见{@link bindAttendance}
  *
  * 显示日期的label的id
  *
@@ -498,7 +497,7 @@ function AttendanceCalendar(_obj, _fn, _lable) {
             var _date = formatDate(parseInt(this.innerText));
             myDate = convertDateFromString(currentYM + "-" + _date);
             showCurrentDate();
-            if (typeof clickFn == "function") clickFn();
+            if (typeof clickFn == "function") clickFn(myDate);
         }
     }
 
@@ -668,6 +667,7 @@ function AttendanceCalendar(_obj, _fn, _lable) {
 
 /**** 此为测试js部分 测试日历start  *****/
 var ac = new AttendanceCalendar("calendar_div", null, "current_date_label");
+ac.init();
 ac.setGetDataType(1);
 var model = {
     dValue: 'datetime',
@@ -676,7 +676,6 @@ var model = {
     normal: 1
 };
 ac.setModel(model);
-ac.init();
 ac.setAttendance(getData2());
 
 function upMonth() {
@@ -720,10 +719,9 @@ function GetRandomNum(Min, Max) {
     return (Min + Math.round(Rand * Range));
 }
 
-// ac.setClickFn(clickFn);
-var a = "sdfsdfdsf";
-function clickFn() {
-    alert(a);
+ac.setClickFn(clickFn);
+function clickFn(clickDate) {
+    alert(clickDate);
 }
 /**** 此为测试js部分 测试日历  *****/
 // console.log(DayNumOfMonth(2016, 2));
