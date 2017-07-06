@@ -11,7 +11,7 @@ var ac = new AttendanceCalendar("calendar_div", null, "current_date_label");
 ac.init();
 ```
 
-如果需要绑定数据可加入如下代码：
+#### 如果需要绑定数据可加入如下代码：
 1. 绑定数组：
 ```
 ac.setGetDataType(1);
@@ -27,7 +27,7 @@ ac.setAttendance(getData2());
 
 2. 绑定函数获取数据则在创建对象时传入获取数据函数即可。
 
-3. 你也可以绑定点击日期回调函数,返回参数为所选日期，如：
+#### 你也可以绑定点击日期回调函数,返回参数为所选日期，如：
 ```
 ac.setClickFn(clickFn);
 function clickFn(clickDate) {
