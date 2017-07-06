@@ -668,7 +668,6 @@ function AttendanceCalendar(_obj, _fn, _lable) {
 
 /**** 此为测试js部分 测试日历start  *****/
 var ac = new AttendanceCalendar("calendar_div", null, "current_date_label");
-ac.setHasMoveButton(true);
 ac.setGetDataType(1);
 var model = {
     dValue: 'datetime',
