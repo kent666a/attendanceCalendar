@@ -37,4 +37,4 @@ function clickFn(clickDate) {
 
 示例演示：
 
-
+![示例演示](https://github.com/kent124454731/attendanceCalendar/blob/master/images/sample.gif)
